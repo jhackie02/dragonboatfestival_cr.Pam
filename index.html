@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dragon Boat Race</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --pastel-salmon-light: #FFEBE7;
+            --pastel-salmon: #FFAAA6;
+            --pastel-green-light: #EAF7ED;
+            --pastel-green: #C8E6C9;
+            --pastel-blue-light: #E3F2FD;
+            --pastel-blue: #BBDEFB;
+            --pastel-purple: #E1BEE7;
+            --pastel-orange: #FFE0B2;
+            --pastel-yellow: #FFF9C4;
+            
+            /* Team color fallbacks */
+            --team-red: #FF8A80;
+            --team-green: #B9F6CA;           
+            --team-orange: #FFD180;
+            --team-purple: #EA80FC;
+            --team-blue: #82B1FF;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: 'Fredoka One', sans-serif;
+            background-color: var(--pastel-blue-light);
+            overflow: hidden;
+        }
+
+        /* 3D Squishy Button Base Styles */
+        .squishy-btn {
+            font-family: 'Fredoka One', sans-serif;
+            border: none;
+            border-radius: 20px;
+            padding: 12px 28px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.05s ease, box-shadow 0.05s ease;
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12);
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .squishy-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+        }
+
+        /* App Screen Managers */
+        .screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Opening Screen Layout (Pastel Salmon Pink) */
+        #opening-screen {
+            background-color: var(--pastel-salmon-light);
+            flex-direction: row;
+            padding: 60px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .menu-left-panel {
+            width: 55%;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .menu-title {
+            font-size: 4.2rem;
+            color: #FF6B6B;
+            text-shadow: 4px 4px 0px white;
+            margin-bottom: 10px;
+        }
+
+        .menu-row-label {
+            font-size: 1.4rem;
+            color: #8A6D6D;
+            margin-bottom: 6px;
+        }
+
+        .menu-selection-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .menu-right-panel {
+            width: 40%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-decor-art {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+
+        /* Specific Menu Button Customizations */
+        .btn-grade { background-color: white; color: #6D5C5C; border: 3px solid var(--pastel-purple); }
+        .btn-grade.active { background-color: var(--pastel-purple); color: #4A148C; }
+        
+        .btn-mode { background-color: white; color: #6D5C5C; border: 3px solid var(--pastel-orange); width: 200px; }
+        .btn-mode.active { background-color: var(--pastel-orange); color: #E65100; }
+        
+        .btn-team-count { background-color: white; color: #6D5C5C; border: 3px solid var(--pastel-yellow); width: 60px; height: 60px; border-radius: 50%; font-size: 1.5rem; padding: 0; }
+        .btn-team-count.active { background-color: var(--pastel-yellow); color: #F57F17; }
+        
+        .btn-launch-race { background-color: #A5D6A7; color: #1B5E20; font-size: 2rem; padding: 15px 45px; margin-top: 15px; align-self: flex-start; box-shadow: 0 8px 0 #81C784; }
+
+        /* Main Game Layout Configuration */
+        #game-screen {
+            flex-direction: row;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* 12/12 Total Vertical Space Partitions */
+        .left-vertical-portion {
+            width: calc(8 / 12 * 100%);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-vertical-portion {
+            width: calc(4 / 12 * 100%);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border-left: 5px dashed #A5D6A7;
+        }
+
+        /* Left Split: Horizontal Components (14/16 Scenery Canvas, 2/16 Controls Container) */
+        .racing-theater-part {
+            height: calc(14 / 16 * 100%);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-controls-part {
+            height: calc(2 / 16 * 100%);
+            width: 100%;
+            background-image: url('plainwhite.png');
+            background-color: #FFFFFF; /* Fallback white if image missing */
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            padding: 10px;
+        }
+
+        /* Layered Scenery Stack Arrangement (Z-Index Sandwich Setup) */
+        .theater-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            pointer-events: none;
+        }
+
+        .track-lane-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        /* Layering Map Indexes to match design constraints */
+        .layer-wave1     { z-index: 90; }
+        .track-blue      { z-index: 85; } /* In between Wave 1 and Wave 2 */
+        .layer-wave2     { z-index: 80; }
+        .track-purple    { z-index: 75; } /* In between Wave 2 and Wave 3 */
+        .layer-wave3     { z-index: 70; }
+        .track-orange    { z-index: 65; } /* In between Wave 3 and Wave 4 */
+        .layer-wave4     { z-index: 60; }
+        .track-green     { z-index: 55; } /* In between Wave 4 and Wave 5 */
+        .layer-wave5     { z-index: 50; }
+        .track-red       { z-index: 45; } /* In between Wave 5 and Wave 6 */
+        .layer-wave6     { z-index: 40; }
+        .layer-clouds    { z-index: 30; }
+        .layer-mountains { z-index: 20; }
+        .layer-plainblue { z-index: 10; }
+
+        /* Boat Element Styles (Scaled 25% bigger, background completely transparent) */
+        .dragon-boat-graphics {
+            position: absolute;
+            height: 14%; 
+            background: transparent !important;
+            object-fit: contain;
+            transition: left 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            transform: scale(1.25); 
+            transform-origin: bottom left;
+            will-change: left;
+        }
+
+        /* Aligning lane baselines so hulls overlap the wave tops naturally without floating appearance */
+        .track-red .dragon-boat-graphics    { bottom: 44%; }
+        .track-green .dragon-boat-graphics  { bottom: 35%; }
+        .track-orange .dragon-boat-graphics { bottom: 26%; }
+        .track-purple .dragon-boat-graphics { bottom: 17%; }
+        .track-blue .dragon-boat-graphics   { bottom: 8%; }
+
+        /* Icon Button Rules */
+        .team-btn-icon {
+            height: 85%;
+            max-height: 65px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: transform 0.1s ease, filter 0.1s ease;
+        }
+        .team-btn-icon:active {
+            transform: translateY(2px);
+        }
+        .team-btn-icon.selected-ring {
+            outline: 5px solid #FF5252;
+            transform: scale(1.08);
+        }
+
+        /* Right Portion Column Layout Configs (Divided into 3 sections) */
+        /* Part 1: Top Question Section (12/24 Height, pastel light green) */
+        .right-part-1 {
+            height: calc(12 / 24 * 100%);
+            width: 100%;
+            background-color: var(--pastel-green-light);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .question-header-text {
+            font-size: 1.8rem;
+            color: #2E5C3A;
+            text-align: center;
+            width: 100%;
+        }
+
+        .question-media-viewport {
+            height: 65%;
+            width: 90%;
+            background-color: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .question-media-img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        /* Part 2: Middle Answer Options Section (9/24 Height, pastel light green) */
+        .right-part-2 {
+            height: calc(9 / 24 * 100%);
+            width: 100%;
+            background-color: var(--pastel-green-light);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 5px 25px;
+            justify-content: center;
+        }
+
+        .answer-option-row {
+            display: flex;
+            width: 100%;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* White background squishy buttons for answers, content strictly centered */
+        .btn-answer-option {
+            flex: 1;
+            background-color: #FFFFFF !important;
+            color: #333333;
+            font-size: 1.15rem;
+            justify-content: center;
+            text-align: center;
+            padding: 14px 15px;
+            border-radius: 16px;
+            box-shadow: 0 5px 0 #D1D8DB;
+        }
+        .btn-answer-option:active {
+            box-shadow: 0 2px 0 #D1D8DB;
+        }
+        .btn-answer-option.active {
+            background-color: #FFFDE7 !important;
+            outline: 4px solid #FFD54F;
+        }
+
+        .btn-submit-lock {
+            background-color: #FF8A80;
+            color: white;
+            font-size: 1.1rem;
+            padding: 14px 20px;
+            border-radius: 16px;
+            display: none; 
+            box-shadow: 0 5px 0 #E57373;
+        }
+        .btn-submit-lock:active {
+            box-shadow: 0 2px 0 #E57373;
+        }
+
+        /* Part 3: Bottom Controls (3/24 Height, background plainwhite.png) */
+        .right-part-3 {
+            height: calc(3 / 24 * 100%);
+            width: 100%;
+            background-image: url('plainwhite.png');
+            background-color: #FFFFFF; /* Fallback white */
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 10px 20px;
+            gap: 12px;
+        }
+
+        .btn-sys-control {
+            background-color: white;
+            color: #455A64;
+            flex: 1;
+            font-size: 1.1rem;
+            padding: 12px 4px;
+            border-radius: 15px;
+            border: 3px solid #CFD8DC;
+            box-shadow: 0 5px 0 #CFD8DC;
+        }
+
+        /* Modal Overlay Sub-System */
+        .app-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app-overlay.visible {
+            display: flex;
+        }
+
+        .overlay-card {
+            background-color: white;
+            padding: 40px;
+            border-radius: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            min-width: 420px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        .overlay-header {
+            font-size: 2.6rem;
+            color: #FF6B6B;
+        }
+
+        .overlay-action-btn {
+            width: 100%;
+            background-color: #FFFFFF;
+            color: #37474F;
+            border: 3px solid #CFD8DC;
+            box-shadow: 0 6px 0 #CFD8DC;
+        }
+
+        /* Results Display Layout */
+        .finish-split-wrapper {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+            width: 100%;
+        }
+
+        .finish-left-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            flex: 1;
+        }
+
+        .podium-roster-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .podium-rank-entry {
+            font-size: 1.3rem;
+            padding: 12px;
+            border-radius: 14px;
+            background-color: var(--pastel-yellow);
+            color: #5D4037;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.04);
+            text-align: center;
+        }
+
+        .finish-right-column {
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .countdown-ticker-text {
+            font-size: 1rem;
+            color: #78909C;
+        }
+
+        /* Local Missing Assets Placeholder Styles */
+        .asset-box-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: rgba(0,0,0,0.3);
+            border: 3px dashed rgba(0,0,0,0.15);
+            border-radius: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="audio-bgm" src="bgmusic.mp3" loop></audio>
+    <audio id="audio-click" src="click.mp3"></audio>
+    <audio id="audio-row" src="row.mp3"></audio>
+    <audio id="audio-yey" src="yey.mp3"></audio>
+
+    <section id="opening-screen" class="screen active">
+        <div class="menu-left-panel">
+            <h1 class="menu-title">Dragon Boat Race</h1>
+            
+            <div class="menu-selection-item">
+                <div class="menu-row-label">Select Level:</div>
+                <div class="menu-selection-group">
+                    <button class="squishy-btn btn-grade active" data-level="1">Level 1</button>
+                    <button class="squishy-btn btn-grade" data-level="2">Level 2</button>
+                    <button class="squishy-btn btn-grade" data-level="3">Level 3</button>
+                </div>
+            </div>
+
+            <div class="menu-selection-item">
+                <div class="menu-row-label">Game Mode:</div>
+                <div class="menu-selection-group">
+                    <button class="squishy-btn btn-mode active" data-mode="Race">Race Mode</button>
+                    <button class="squishy-btn btn-mode" data-mode="Objective">Objective Mode</button>
+                </div>
+            </div>
+
+            <div class="menu-selection-item">
+                <div class="menu-row-label">Number of Teams:</div>
+                <div class="menu-selection-group">
+                    <button class="squishy-btn btn-team-count" data-count="1">1</button>
+                    <button class="squishy-btn btn-team-count" data-count="2">2</button>
+                    <button class="squishy-btn btn-team-count" data-count="3">3</button>
+                    <button class="squishy-btn btn-team-count" data-count="4">4</button>
+                    <button class="squishy-btn btn-team-count active" data-count="5">5</button>
+                </div>
+            </div>
+
+            <button class="squishy-btn btn-launch-race" id="action-trigger-launch">Start Game</button>
+        </div>
+
+        <div class="menu-right-panel">
+            <img src="rowingzongzi.png" alt="Decorative Zongzi Design" class="menu-decor-art" onerror="this.outerHTML='<div class=\'menu-decor-art asset-box-fallback\' style=\'width:280px;height:280px;background:var(--pastel-yellow)\'>[rowingzongzi.png Design]</div>'">
+        </div>
+    </section>
+
+    <section id="game-screen" class="screen">
+        
+        <div class="left-vertical-portion">
+            
+            <div class="racing-theater-part" id="theater-canvas-root">
+                
+                <img src="plainblue.png" class="theater-layer layer-plainblue" onerror="this.outerHTML='<div class=\'theater-layer layer-plainblue\' style=\'background:#E3F2FD;\'></div>'">
+                <img src="mountains.png" class="theater-layer layer-mountains" onerror="this.outerHTML='<div class=\'theater-layer layer-mountains\'></div>'">
+                <img src="clouds.png" class="theater-layer layer-clouds" onerror="this.outerHTML='<div class=\'theater-layer layer-clouds\'></div>'">
+                
+                <img src="wave6.png" class="theater-layer layer-wave6" onerror="this.outerHTML='<div class=\'theater-layer layer-wave6\' style=\'border-top: 4px dashed #BEE3F8; top:46%; height:2%;\'></div>'">
+                <div class="track-lane-container track-red" id="lane-frame-red">
+                    <img src="boatred.png" id="boat-instance-red" class="dragon-boat-graphics" style="left: 0%;" onerror="this.style.background='var(--team-red)'; this.style.width='140px'; this.style.height='35px'; this.style.borderRadius='8px';">
+                </div>
+
+                <img src="wave5.png" class="theater-layer layer-wave5" onerror="this.outerHTML='<div class=\'theater-layer layer-wave5\' style=\'border-top: 4px dashed #BEE3F8; top:56%; height:2%;\'></div>'">
+                <div class="track-lane-container track-green" id="lane-frame-green">
+                    <img src="boatgreen.png" id="boat-instance-green" class="dragon-boat-graphics" style="left: 0%;" onerror="this.style.background='var(--team-green)'; this.style.width='140px'; this.style.height='35px'; this.style.borderRadius='8px';">
+                </div>
+
+                <img src="wave4.png" class="theater-layer layer-wave4" onerror="this.outerHTML='<div class=\'theater-layer layer-wave4\' style=\'border-top: 4px dashed #BEE3F8; top:66%; height:2%;\'></div>'">
+                <div class="track-lane-container track-orange" id="lane-frame-orange">
+                    <img src="boatorange.png" id="boat-instance-orange" class="dragon-boat-graphics" style="left: 0%;" onerror="this.style.background='var(--team-orange)'; this.style.width='140px'; this.style.height='35px'; this.style.borderRadius='8px';">
+                </div>
+
+                <img src="wave3.png" class="theater-layer layer-wave3" onerror="this.outerHTML='<div class=\'theater-layer layer-wave3\' style=\'border-top: 4px dashed #BEE3F8; top:76%; height:2%;\'></div>'">
+                <div class="track-lane-container track-purple" id="lane-frame-purple">
+                    <img src="boatpurple.png" id="boat-instance-purple" class="dragon-boat-graphics" style="left: 0%;" onerror="this.style.background='var(--team-[purple])'; this.style.width='140px'; this.style.height='35px'; this.style.borderRadius='8px';">
+                </div>
+
+                <img src="wave2.png" class="theater-layer layer-wave2" onerror="this.outerHTML='<div class=\'theater-layer layer-wave2\' style=\'border-top: 4px dashed #BEE3F8; top:86%; height:2%;\'></div>'">
+                <div class="track-lane-container track-blue" id="lane-frame-blue">
+                    <img src="boatblue.png" id="boat-instance-blue" class="dragon-boat-graphics" style="left: 0%;" onerror="this.style.background='var(--team-blue)'; this.style.width='140px'; this.style.height='35px'; this.style.borderRadius='8px';">
+                </div>
+
+                <img src="wave1.png" class="theater-layer layer-wave1" onerror="this.outerHTML='<div class=\'theater-layer layer-wave1\' style=\'background:rgba(33,150,243,0.15); top:94%; height:6%;\'></div>'">
+            </div>
+
+            <div class="team-controls-part" id="interactive-team-activation-deck">
+                <img src="buttonred.png" id="icon-trigger-red" class="team-btn-icon" data-color="red" onerror="this.outerHTML='<button id=\'icon-trigger-red\' class=\'team-btn-icon squishy-btn\' data-color=\'red\' style=\'background:var(--team-red);color:white\'>Red</button>'">
+                <img src="buttongreen.png" id="icon-trigger-green" class="team-btn-icon" data-color="green" onerror="this.outerHTML='<button id=\'icon-trigger-green\' class=\'team-btn-icon squishy-btn\' data-color=\'green\' style=\'background:var(--team-green);color:white\'>Green</button>'">
+                <img src="buttonorange.png" id="icon-trigger-orange" class="team-btn-icon" data-color="orange" onerror="this.outerHTML='<button id=\'icon-trigger-orange\' class=\'team-btn-icon squishy-btn\' data-color=\'orange\' style=\'background:var(--team-orange);color:white\'>Orange</button>'">
+                <img src="buttonpurple.png" id="icon-trigger-purple" class="team-btn-icon" data-color="purple" onerror="this.outerHTML='<button id=\'icon-trigger-purple\' class=\'team-btn-icon squishy-btn\' data-color=\'purple\' style=\'background:var(--team-purple);color:white\'>Purple</button>'">
+                <img src="buttonblue.png" id="icon-trigger-blue" class="team-btn-icon" data-color="blue" onerror="this.outerHTML='<button id=\'icon-trigger-blue\' class=\'team-btn-icon squishy-btn\' data-color=\'blue\' style=\'background:var(--team-blue);color:white\'>Blue</button>'">
+            </div>
+        </div>
+
+        <div class="right-vertical-portion">
+            
+            <div class="right-part-1">
+                <div class="question-header-text" id="quiz-question-lbl">Loading Quiz Data...</div>
+                <div class="question-media-viewport">
+                    <img src="" alt="Tradition Prompt Asset" id="quiz-media-graphic" class="question-media-img" style="display:none;">
+                    <div id="quiz-media-fallback" class="asset-box-fallback" style="width:100%; height:100%;">Prompt Graphic Container</div>
+                </div>
+            </div>
+
+            <div class="right-part-2" id="quiz-choices-container-deck">
+                <div class="answer-option-row">
+                    <button class="squishy-btn btn-answer-option" data-option-index="0"></button>
+                    <button class="squishy-btn btn-submit-lock" data-option-index="0">Lock</button>
+                </div>
+                <div class="answer-option-row">
+                    <button class="squishy-btn btn-answer-option" data-option-index="1"></button>
+                    <button class="squishy-btn btn-submit-lock" data-option-index="1">Lock</button>
+                </div>
+                <div class="answer-option-row">
+                    <button class="squishy-btn btn-answer-option" data-option-index="2"></button>
+                    <button class="squishy-btn btn-submit-lock" data-option-index="2">Lock</button>
+                </div>
+            </div>
+
+            <div class="right-part-3">
+                <button class="squishy-btn btn-sys-control" id="sys-action-pause">Pause</button>
+                <button class="squishy-btn btn-sys-control" id="sys-action-reset">Reset</button>
+                <button class="squishy-btn btn-sys-control" id="sys-action-terminate">End Game</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="app-overlay" id="overlay-pause-viewport">
+        <div class="overlay-card">
+            <h2 class="overlay-header" style="color: var(--pastel-salmon)">Game Paused</h2>
+            <button class="squishy-btn overlay-action-btn" id="modal-resume-game">Continue</button>
+            <button class="squishy-btn overlay-action-btn" id="modal-restart-game">Restart</button>
+            <button class="squishy-btn overlay-action-btn" id="modal-terminate-game">End Game</button>
+        </div>
+    </div>
+
+    <div class="app-overlay" id="overlay-congrats-viewport">
+        <div class="overlay-card" style="min-width: 600px;">
+            <div class="finish-split-wrapper">
+                
+                <div class="finish-left-column">
+                    <h2 class="overlay-header" id="congrats-main-title">Congratulations!</h2>
+                    <div class="podium-roster-box" id="podium-entries-rendering-target">
+                        </div>
+                    
+                    <div id="congrats-delayed-actions" style="display:none; width:100%; gap:15px;">
+                        <button class="squishy-btn overlay-action-btn" id="endstate-action-restart" style="background-color: #A5D6A7; color: #1B5E20; border-color: #81C784;">Start Again</button>
+                        <button class="squishy-btn overlay-action-btn" id="endstate-action-terminate" style="background-color: var(--pastel-salmon); color: #B71C1C; border-color: #E57373;">End Game</button>
+                    </div>
+                    <div id="congrats-ticker-msg" class="countdown-ticker-text">Options unlock in 5s...</div>
+                </div>
+
+                <div class="finish-right-column">
+                    <img src="rowingzongzi.png" alt="Zongzi Trophy Design Graphic" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.outerHTML='<div class=\'asset-box-fallback\' style=\'width:100%;height:100%;background:var(--pastel-orange)\'>[rowingzongzi.png Design]</div>'">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Configuration Setup Matrix mapping parameters across difficulty tiers
+        const DATA_QUESTION_LEVELS = {
+            "1": {
+                question: "What is it?",
+                items: [
+                    { img: "mugwort.png", ans: "mugwort" },
+                    { img: "egg.png", ans: "eggs" },
+                    { img: "zongzi.png", ans: "rice dumplings" },
+                    { img: "perfume.png", ans: "perfume sachet" },
+                    { img: "rowing.png", ans: "dragon boat" },
+                    { img: "watch.png", ans: "dragon boat race"}
+                ]
+            },
+            "2": {
+                question: "What is the action?",
+                items: [
+                    { img: "mugwort.png", ans: "hang" },
+                    { img: "egg.png", ans: "balance" },
+                    { img: "zongzi.png", ans: "eat" },
+                    { img: "perfume.png", ans: "wear" },
+                    { img: "rowing.png", ans: "dragon boat" },
+                    { img: "watch.png", ans: "race"}
+                ]
+            },
+            "3": {
+                question: "What is this tradition?",
+                items: [
+                    { img: "mugwort.png", ans: "hang the mugwort" },
+                    { img: "egg.png", ans: "balance the eggs" },
+                    { img: "zongzi.png", ans: "eat rice dumplings" },
+                    { img: "rowing.png", ans: "row the dragon boats" },
+                    { img: "watch.png", ans: "watch the dragon boat race"},
+                    { img: "perfume.png", ans: "wear the perfume sachet" },
+                ]
+            },
+        };
+
+        const TEAM_REGISTRY_KEYS = ["red", "green", "orange", "purple", "blue"];
+
+        // State Architecture Core Variables
+        let state = {
+            level: "1",
+            mode: "Race",
+            teamsCount: 5,
+            scores: { red: 0, green: 0, orange: 0, purple: 0, blue: 0 },
+            selectedTeam: null,
+            selectedAnswerIndex: null,
+            activeQuestion: null,
+            podiumArrivals: [], 
+            isTerminated: false
+        };
+
+        // Audio Sub-Routing Handlers
+        function fireAudioTrack(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.currentTime = 0;
+                el.play().catch(() => {});
+            }
+        }
+
+        function playBgm() { document.getElementById('audio-bgm').play().catch(() => {}); }
+        function pauseBgm() { document.getElementById('audio-bgm').pause(); }
+
+        // Catch clicks to trigger universal audio feedback
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('squishy-btn') || e.target.classList.contains('team-btn-icon') || e.target.classList.contains('btn-sys-control')) {
+                fireAudioTrack('audio-click');
+            }
+        });
+
+        // Setup Selection Option Menus UI Bindings
+        document.querySelectorAll('.btn-grade').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.btn-grade').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                state.level = this.dataset.level;
+            });
+        });
+
+        document.querySelectorAll('.btn-mode').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                state.mode = this.dataset.mode;
+            });
+        });
+
+        document.querySelectorAll('.btn-team-count').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.btn-team-count').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                state.teamsCount = parseInt(this.dataset.count, 10);
+            });
+        });
+
+        // Start Button Event Listener
+        document.getElementById('action-trigger-launch').addEventListener('click', () => {
+            resetEnvironmentConfiguration();
+            document.getElementById('opening-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            playBgm();
+        });
+
+        // Reset game elements to initial states
+        function resetEnvironmentConfiguration() {
+            state.scores = { red: 0, green: 0, orange: 0, purple: 0, blue: 0 };
+            state.podiumArrivals = [];
+            state.selectedTeam = null;
+            state.selectedAnswerIndex = null;
+            state.isTerminated = false;
+
+            TEAM_REGISTRY_KEYS.forEach((color, idx) => {
+                const boatObj = document.getElementById(`boat-instance-${color}`);
+                const laneFrame = document.getElementById(`lane-frame-${color}`);
+                const ctrlIcon = document.getElementById(`icon-trigger-${color}`);
+
+                if (boatObj) boatObj.style.left = "0%";
+
+                // Display dynamic toggle filtering out completely any unselected lane systems/control items
+                if (idx < state.teamsCount) {
+                    if (laneFrame) laneFrame.style.display = "block";
+                    if (ctrlIcon) {
+                        ctrlIcon.style.display = "inline-block";
+                        ctrlIcon.classList.remove('selected-ring');
+                    }
+                } else {
+                    if (laneFrame) laneFrame.style.display = "none";
+                    if (ctrlIcon) ctrlIcon.style.display = "none";
+                }
+            });
+
+            generateQuizRoundCycle();
+        }
+
+        // Logic loop to construct new quiz round sets
+        function generateQuizRoundCycle() {
+            state.selectedTeam = null;
+            state.selectedAnswerIndex = null;
+            
+            document.querySelectorAll('.team-btn-icon').forEach(btn => btn.classList.remove('selected-ring'));
+            hideSubmitLocks();
+
+            const contextLevel = DATA_QUESTION_LEVELS[state.level];
+            
+            // Render primary title label question text
+            document.getElementById('quiz-question-lbl').innerText = contextLevel.question;
+
+            // Extract random challenge item object
+            const structuralPool = contextLevel.items;
+            const chosenTarget = structuralPool[Math.floor(Math.random() * structuralPool.length)];
+            state.activeQuestion = chosenTarget;
+
+            // Set up fallback handling for images
+            const visualNode = document.getElementById('quiz-media-graphic');
+            const placeholderFallback = document.getElementById('quiz-media-fallback');
+
+            visualNode.src = chosenTarget.img;
+            visualNode.onload = () => {
+                visualNode.style.display = "block";
+                placeholderFallback.style.display = "none";
+            };
+            visualNode.onerror = () => {
+                visualNode.style.display = "none";
+                placeholderFallback.style.display = "flex";
+                placeholderFallback.innerText = `[Image Asset: ${chosenTarget.img}]`;
+            };
+
+            // Build choices array containing the valid answer and up to 2 unique distractors
+            let responseOptions = [chosenTarget.ans];
+            let rawDistractors = structuralPool.map(itm => itm.ans).filter(ansText => ansText !== chosenTarget.ans);
+            
+            // Randomize array configurations
+            rawDistractors.sort(() => 0.5 - Math.random());
+            while (responseOptions.length < 3 && rawDistractors.length > 0) {
+                responseOptions.push(rawDistractors.pop());
+            }
+            responseOptions.sort(() => 0.5 - Math.random());
+
+            // Bind structured parameters over button elements row items
+            const structuralRows = document.getElementById('quiz-choices-container-deck').querySelectorAll('.answer-option-row');
+            structuralRows.forEach((row, idx) => {
+                const innerBtn = row.querySelector('.btn-answer-option');
+                if (responseOptions[idx]) {
+                    row.style.display = "flex";
+                    innerBtn.innerText = responseOptions[idx];
+                    innerBtn.classList.remove('active');
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        // Select team button event listener
+        document.getElementById('interactive-team-activation-deck').addEventListener('click', (e) => {
+            const functionalTarget = e.target.closest('.team-btn-icon');
+            if (!functionalTarget) return;
+
+            document.querySelectorAll('.team-btn-icon').forEach(el => el.classList.remove('selected-ring'));
+            functionalTarget.classList.add('selected-ring');
+            
+            state.selectedTeam = functionalTarget.dataset.color;
+        });
+
+        // Track choice selections and handle activation states
+        document.querySelectorAll('.btn-answer-option').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (!state.selectedTeam) {
+                    alert("Please choose a team icon button on the bottom bar first!");
+                    return;
+                }
+
+                document.querySelectorAll('.btn-answer-option').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+
+                state.selectedAnswerIndex = this.dataset.optionIndex;
+                hideSubmitLocks();
+
+                // Unveil the local standalone confirmation lock button inline next to the choice
+                const contextParentRow = this.closest('.answer-option-row');
+                contextParentRow.querySelector('.btn-submit-lock').style.display = "block";
+            });
+        });
+
+        function hideSubmitLocks() {
+            document.querySelectorAll('.btn-submit-lock').forEach(lock => lock.style.display = "none");
+        }
+
+        // Evaluate lock confirmation selections
+        document.querySelectorAll('.btn-submit-lock').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const choiceLabelText = document.querySelectorAll('.btn-answer-option')[state.selectedAnswerIndex].innerText;
+                const evaluatedCorrect = (choiceLabelText === state.activeQuestion.ans);
+
+                if (evaluatedCorrect) {
+                    propelTeamBoat(state.selectedTeam);
+                }
+
+                if (!evaluateWinMetrics()) {
+                    generateQuizRoundCycle();
+                }
+            });
+        });
+
+        // Translation loop calculations
+        function propelTeamBoat(teamColor) {
+            if (state.scores[teamColor] >= 5) return;
+
+            state.scores[teamColor]++;
+            fireAudioTrack('audio-row');
+            
+            const targetedBoatElement = document.getElementById(`boat-instance-${teamColor}`);
+            // Smooth straight path movement tracking precisely by 1/8 increments per correct response
+            const targetCalculatedLeft = (state.scores[teamColor] / 8) * 100;
+            if (targetedBoatElement) {
+                targetedBoatElement.style.left = `${targetCalculatedLeft}%`;
+            }
+
+            // Lock podium arrival order metrics
+            if (state.scores[teamColor] === 5 && !state.podiumArrivals.includes(teamColor)) {
+                state.podiumArrivals.push(teamColor);
+            }
+        }
+
+        // Logic conditions matching target challenge requirements
+        function evaluateWinMetrics() {
+            const activeCount = state.teamsCount;
+
+            if (state.mode === "Race") {
+                // Safeguards for matches containing less than 3 teams
+                if (activeCount === 1) {
+                    if (state.scores[TEAM_REGISTRY_KEYS[0]] >= 5) { return triggerMatchResolution(); }
+                    return false;
+                }
+                if (activeCount === 2) {
+                    const finishers = TEAM_REGISTRY_KEYS.slice(0, 2).filter(c => state.scores[c] >= 5).length;
+                    if (finishers >= 2) { return triggerMatchResolution(); }
+                    return false;
+                }
+
+                // Default standard rules structure: minimum 2 distinct teams must secure 5 points before evaluating placements
+                const qualifiedFinishers = TEAM_REGISTRY_KEYS.slice(0, activeCount).filter(col => state.scores[col] >= 5).length;
+                if (qualifiedFinishers >= 2) {
+                    triggerMatchResolution();
+                    return true;
+                }
+                return false;
+
+            } else {
+                // Objective Mode structure: Match runs until ALL chosen teams reach exactly 5 points
+                const totalFinishedReached = TEAM_REGISTRY_KEYS.slice(0, activeCount).every(col => state.scores[col] >= 5);
+                if (totalFinishedReached) {
+                    triggerMatchResolution();
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        // Scorecard summary rendering interface
+        function triggerMatchResolution() {
+            state.isTerminated = true;
+            fireAudioTrack('audio-yey');
+            
+            const gridTarget = document.getElementById('podium-entries-rendering-target');
+            gridTarget.innerHTML = "";
+
+            const coreHeader = document.getElementById('congrats-main-title');
+            const countdownTicker = document.getElementById('congrats-ticker-msg');
+            const dynamicButtonsWrapper = document.getElementById('congrats-delayed-actions');
+
+            dynamicButtonsWrapper.style.display = "none";
+            countdownTicker.style.display = "block";
+
+            if (state.mode === "Race") {
+                coreHeader.innerText = "Race Placements";
+
+                // Filter out non-finishing runner lanes sorted descending to extract third-place parameters
+                let runnerPool = TEAM_REGISTRY_KEYS.slice(0, state.teamsCount).filter(color => !state.podiumArrivals.includes(color));
+                runnerPool.sort((alpha, beta) => state.scores[beta] - state.scores[alpha]);
+
+                let definitiveStandings = [...state.podiumArrivals, ...runnerPool];
+                const positionalKeys = ["First Place", "Second Place", "Third Place"];
+
+                positionalKeys.forEach((label, positionIndex) => {
+                    if (positionIndex < state.teamsCount) {
+                        const assignedTeamColor = definitiveStandings[positionIndex];
+                        const rowWidget = document.createElement('div');
+                        rowWidget.className = "podium-rank-entry";
+                        rowWidget.innerText = `${label} is Team ${assignedTeamColor.toUpperCase()}`;
+                        rowWidget.style.backgroundColor = `var(--team-${assignedTeamColor})`;
+                        rowWidget.style.color = (assignedTeamColor === 'yellow' || assignedTeamColor === 'orange') ? '#424242' : '#FFFFFF';
+                        gridTarget.appendChild(rowWidget);
+                    }
+                });
+
+            } else {
+                coreHeader.innerText = "Congratulations!";
+                const messagingWidget = document.createElement('div');
+                messagingWidget.className = "podium-rank-entry";
+                messagingWidget.style.backgroundColor = "var(--pastel-green)";
+                messagingWidget.style.fontSize = "1.4rem";
+                messagingWidget.innerText = "All active teams have completed 5 points!";
+                gridTarget.appendChild(messagingWidget);
+            }
+
+            document.getElementById('overlay-congrats-viewport').classList.add('visible');
+
+            // 5-second dynamic interface locking sequence
+            let loopCounter = 5;
+            countdownTicker.innerText = `Options unlock in ${loopCounter}s...`;
+
+            const globalLockClock = setInterval(() => {
+                loopCounter--;
+                if (loopCounter <= 0) {
+                    clearInterval(globalLockClock);
+                    countdownTicker.style.display = "none";
+                    dynamicButtonsWrapper.style.display = "flex";
+                } else {
+                    countdownTicker.innerText = `Options unlock in ${loopCounter}s...`;
+                }
+            }, 1000);
+
+            return true;
+        }
+
+        // Global System Action Handlers
+        document.getElementById('sys-action-pause').addEventListener('click', () => {
+            pauseBgm();
+            document.getElementById('overlay-pause-viewport').classList.add('visible');
+        });
+
+        document.getElementById('sys-action-reset').addEventListener('click', () => {
+            TEAM_REGISTRY_KEYS.forEach(color => {
+                state.scores[color] = 0;
+                const boat = document.getElementById(`boat-instance-${color}`);
+                if (boat) boat.style.left = "0%";
+            });
+            state.podiumArrivals = [];
+            generateQuizRoundCycle();
+        });
+
+        document.getElementById('sys-action-terminate').addEventListener('click', () => { window.close(); });
+
+        // Overlay Interactive Response Maps
+        document.getElementById('modal-resume-game').addEventListener('click', () => {
+            document.getElementById('overlay-pause-viewport').classList.remove('visible');
+            playBgm();
+        });
+
+        document.getElementById('modal-restart-game').addEventListener('click', () => {
+            document.getElementById('overlay-pause-viewport').classList.remove('visible');
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('opening-screen').classList.add('active');
+            pauseBgm();
+        });
+
+        document.getElementById('modal-terminate-game').addEventListener('click', () => { window.close(); });
+        document.getElementById('endstate-action-terminate').addEventListener('click', () => { window.close(); });
+
+        document.getElementById('endstate-action-restart').addEventListener('click', () => {
+            document.getElementById('overlay-congrats-viewport').classList.remove('visible');
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('opening-screen').classList.add('active');
+            pauseBgm();
+        });
+    </script>
+</body>
+</html>
